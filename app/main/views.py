@@ -7,6 +7,7 @@ from .forms import NameForm
 from .. import db
 from .. import socketio
 from ..models import User, Message
+from .service import get_or_create_user, get_user_id, get_message_history
 
 
 @socketio.on("connect_ack", namespace="/room1")
@@ -21,12 +22,11 @@ def connect_ack(recv_data):
 @socketio.on("to_server", namespace="/room1")
 def recv(recv_data):
     if 'id' not in session:
-        user = User.query.filter_by(name=session['name']).first()
-        session['id'] = user.id
-        session['user'] = user
-    user_id = session['id']
+        name = session['name']
+        user_id = get_user_id(name)
+        session['id'] = user_id
     name = session['name']
-    message = Message(user_id=user_id, content=recv_data['data'])
+    message = Message(user_id=session['id'], content=recv_data['data'])
     db.session.add(message)
 
     data = "@{author}: {message}".format(author=name, message=message.content)
@@ -34,15 +34,27 @@ def recv(recv_data):
     emit("to_client", {"data": data, "count": message.id}, broadcast=True)
 
 
+@socketio.on("get_history_from_server", namespace="/room1")
+def get_history(recv_data):
+    if 'id' not in session:
+        name = session['name']
+        user_id = get_user_id(name)
+        session['id'] = user_id
+    data = get_message_history()
+
+    emit("return_history_to_client", {"data": data})
+
+
 @main.route("/", methods=['GET', 'POST'])
 def index():
     form = NameForm()
     if form.validate_on_submit():
-        user = User(name=form.name.data)
-        db.session.add(user)
-        session['name'] = form.name.data
+        name = form.name.data
+        user = get_or_create_user(name)
+        session['name'] = user.name
+        session['known'] = True
         form.name.data = ""
-        return redirect(url_for(".index"))
+        return redirect(url_for(".chat"))
     return render_template('index.html',
                            form=form, name=session.get("name"),
                            known=session.get("known", False),
@@ -63,4 +75,5 @@ def chat():
 def clear():
     if 'name' in session:
         session.pop('name')
-        return redirect(url_for('.index'))
+    session['known'] = False
+    return redirect(url_for('.index'))

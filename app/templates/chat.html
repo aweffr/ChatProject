@@ -13,6 +13,7 @@
             <h3 class="panel-title">消息版</h3>
         </div>
         <div class="panel-body" id="log" style="height: 300px; overflow: auto"></div>
+        <p id="debug"></p>
     </div>
     <div class="panel-default">
         <div class="panel-heading">
@@ -45,9 +46,18 @@
         $(document).ready(function () {
             var namespace = '/room1';
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+
             socket.on('connect', function () {
                 socket.emit('connect_ack', {data: 'Connected!'});
             });
+
+            socket.emit('get_history_from_server', {data: null});
+
+            socket.on('return_history_to_client', function (msg) {
+               $('#debug').text(msg['data']);
+            });
+
             socket.on('to_client', function (msg) {
                 $('#log').append('<br>' + $('<div/>').text('#' + msg.count + ': ' + msg.data).html());
                 $('#log').scrollTop(0x7fffffff);

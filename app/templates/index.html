@@ -8,15 +8,18 @@
         <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
         {% if not known %}
             <p>Pleased to meet you!</p>
-        {% else %}
-            <p>Happy to see you again!</p>
         {% endif %}
     </div>
-    {{ wtf.quick_form(form) }}
+    {% if not known %}
+        {{ wtf.quick_form(form) }}
+    {% else %}
+        <button class="btn btn-lg btn-block btn-success" onclick="window.location='{{ url_for('main.chat') }}'">Chat!</button>
+    {% endif %}
+    <p></p>
     <p>The local date and time is {{ moment(current_time).format('LLLL') }}.</p>
     <p>That was {{ moment(current_time).fromNow(refresh=True) }}</p>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
+    {{ super() }}
 {% endblock %}
