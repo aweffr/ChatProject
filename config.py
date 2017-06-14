@@ -17,6 +17,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
                               "sqlite:///" + os.path.join(basedir, "data-dev.sqlite")
+    DROP_AND_CREATE = os.environ.get("DROP_AND_CREATE" or False)
 
 
 class TestingConfig(Config):
