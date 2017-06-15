@@ -5,17 +5,34 @@ from flask_socketio import emit
 from . import main
 from .forms import NameForm
 from .. import db
+from .. import mq
 from .. import socketio
 from ..models import User, Message
 from .service import update_or_create_user, get_user_id, get_message_history
+import json
+
+
+def broadcast_to_client(message):
+    message = json.loads(message)
+    socketio.emit("radio", {"data": message['data'], "count": message['count']},
+                  namespace="/room1", broadcast=True)
+
+
+@socketio.on_error('/room1')  # handles the '/chat' namespace
+def error_handler_chat(e):
+    print("Error:", e)
+    return redirect(url_for("main.index"))
 
 
 @socketio.on("connect_ack", namespace="/room1")
 def connect_ack(recv_data):
-    if recv_data['data'] == 'Connected!':
+    if recv_data['data'] == 'Connected!' and 'first_ack' not in session:
         data = "@{author} has enter the room!".format(author=session['name'])
+        session['first_ack'] = True
     else:
         data = "Error!"
+    if mq.broadcast_interface is None:
+        mq.broadcast_interface = broadcast_to_client
     emit("to_client", {"data": data, "count": '/'}, broadcast=True)
 
 
@@ -28,10 +45,11 @@ def recv(recv_data):
     name = session['name']
     message = Message(user_id=session['id'], content=recv_data['data'])
     db.session.add(message)
-
     data = "@{author}: {message}".format(author=name, message=message.content)
     db.session.commit()
-    emit("to_client", {"data": data, "count": message.id}, broadcast=True)
+
+    mq.send(json.dumps({"data": data, "count": message.id}))
+    # emit("to_client", {"data": data, "count": message.id}, broadcast=True)
 
 
 @socketio.on("get_history_from_server", namespace="/room1")

@@ -69,6 +69,10 @@
                 flush_message(msg);
             });
 
+            socket.on('radio', function (msg) {
+                flush_message(msg);
+            });
+
             $('form#emit').submit(function (event) {
                 socket.emit('to_server', {data: $('#emit_data').val()});
                 $("#emit_data").val("");

@@ -4,6 +4,7 @@ from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
+from .flask_mq import Mq
 from config import config
 
 '''
@@ -16,6 +17,7 @@ mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 socketio = SocketIO()
+mq = Mq()
 
 
 def create_app(config_name: str):
@@ -27,7 +29,8 @@ def create_app(config_name: str):
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
-    socketio.init_app(app)
+    socketio.init_app(app, async_mode=app.config['ASYNC_MODE'])
+    mq.init_app(app)
 
     # 附加路由和自定义的错误页面
     from .main import main as main_blueprint

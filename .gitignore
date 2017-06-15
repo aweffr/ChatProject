@@ -25,6 +25,9 @@ __pycache__/
 # idea files
 .idea/
 
+# sqlite
+*.sqlite
+
 # C extensions
 *.so
 

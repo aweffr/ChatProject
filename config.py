@@ -7,6 +7,10 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "DAYDAYUP"
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+    STOMP_URL = "101.37.24.136"
+    STOMP_PORT = 61613
+    STOMP_NAMESPACE = "test2"
+    ASYNC_MODE = "gevent"
 
     @staticmethod
     def init_app():
