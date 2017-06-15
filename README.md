@@ -21,6 +21,8 @@
         - 比较Evenlet和Gevent中提供的Socket API, 看看能不能解决Evenlet中遇到的问题
         - 数据库, socketIO, MQ三者独立的**单元测试**
         - 并发性能测试
+        - **分订阅!按品牌区分, 写到配置中**
+        - **权限不同的人能进的topic分级**
         
 
 
