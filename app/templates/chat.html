@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Flasky{% endblock %}
+{% block title %}{{ super() }}{% endblock %}
 
 {% block page_content %}
     <div class="page-header">
@@ -13,7 +13,6 @@
             <h3 class="panel-title">消息版</h3>
         </div>
         <div class="panel-body" id="log" style="height: 300px; overflow: auto"></div>
-        <p id="debug"></p>
     </div>
     <div class="panel-default">
         <div class="panel-heading">
@@ -43,6 +42,11 @@
     <script type="text/javascript" src="/static/socketio/socket.io.js"></script>
     <script type="text/javascript" src="/static/jquery/jquery-3.2.1.min.js"></script>
     <script>
+        function flush_message(msg) {
+            $('#log').append('<br>' + $('<div/>').text('#' + msg.count + ': ' + msg.data).html());
+            $('#log').scrollTop(0x7fffffff);
+        }
+
         $(document).ready(function () {
             var namespace = '/room1';
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
@@ -55,12 +59,14 @@
             socket.emit('get_history_from_server', {data: null});
 
             socket.on('return_history_to_client', function (msg) {
-               $('#debug').text(msg['data']);
+                var arr = JSON.parse(msg['data']);
+                for (i = 0; i < arr.length; i++) {
+                    flush_message(arr[i]);
+                }
             });
 
             socket.on('to_client', function (msg) {
-                $('#log').append('<br>' + $('<div/>').text('#' + msg.count + ': ' + msg.data).html());
-                $('#log').scrollTop(0x7fffffff);
+                flush_message(msg);
             });
 
             $('form#emit').submit(function (event) {

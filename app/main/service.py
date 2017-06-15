@@ -1,13 +1,16 @@
 from .. import db
 from flask import g
+from datetime import datetime
 from ..models import User, Message
 import json
 
 
-def get_or_create_user(name):
+def update_or_create_user(name):
     user = User.query.filter_by(name=name).first()
     if user is None:
         user = create_user(name)
+    else:
+        user.last_login = datetime.now()
     return user
 
 
@@ -23,9 +26,13 @@ def get_user_id(name):
 
 
 def get_message_history():
-    messages = Message.query.order_by("id").all()
     lst = []
-
-    for m in messages:
-        lst.append({"data": "@{author}: {message}".format(author=m.user_id, message=m.content)})
+    for message_id, user_name, content, time in \
+            db.session.query(Message.id, User.name, Message.content, Message.create_time).\
+            filter(User.id == Message.user_id).all():
+        d = {
+            "data": "@{author}: {message}".format(author=user_name, message=content),
+            "count": message_id
+        }
+        lst.append(d)
     return json.dumps(lst)

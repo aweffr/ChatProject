@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, session, redirect, url_for, flash
+from flask import render_template, session, redirect, url_for, flash, g
 from flask_socketio import emit
 
 from . import main
@@ -7,7 +7,7 @@ from .forms import NameForm
 from .. import db
 from .. import socketio
 from ..models import User, Message
-from .service import get_or_create_user, get_user_id, get_message_history
+from .service import update_or_create_user, get_user_id, get_message_history
 
 
 @socketio.on("connect_ack", namespace="/room1")
@@ -41,8 +41,7 @@ def get_history(recv_data):
         user_id = get_user_id(name)
         session['id'] = user_id
     data = get_message_history()
-
-    emit("return_history_to_client", {"data": data})
+    emit("return_history_to_client", {"data": data}, broadcast=True)
 
 
 @main.route("/", methods=['GET', 'POST'])
@@ -50,7 +49,7 @@ def index():
     form = NameForm()
     if form.validate_on_submit():
         name = form.name.data
-        user = get_or_create_user(name)
+        user = update_or_create_user(name)
         session['name'] = user.name
         session['known'] = True
         form.name.data = ""
