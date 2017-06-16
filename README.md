@@ -8,6 +8,15 @@
 
 
 ### Development Log
+- 2017.6.16
+    - 考虑按以下方式实现消息回执:
+    - 服务器会忠实地在namespace里对客户端广播ActiveMQ对应的每一条消息, 带上user_id和message_id
+    - 用户在网页上发送消息,会直接在消息框中显示. 当收到服务器的message_id/user_id和当前网页id符合时
+    **完成消息确认**
+    - 对于用户来说, 只有"消息发送成功"和"消息发送失败"两个状态
+    - 问题在于: 何时将消息体写入数据库? 如何get message_id, 是否考虑加一个用户的消息子ID?
+
+
 - 2017.6.15
     - 今日走通了ActiveMQ的连接功能, 撸了一个简易的flask_mq, 可以用组件注册的方式在App中加载.
     - 可以通过shell进入debug, 单独测试send和subscribe功能
