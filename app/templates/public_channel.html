@@ -5,7 +5,7 @@
 
 {% block page_content %}
     <div class="page-header">
-        <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
+        <h1>你好, {% if name %}{{ name }}{% else %}请登录{% endif %}!</h1>
     </div>
 
     <div class="panel-default">
@@ -21,13 +21,23 @@
         <div class="panel-body">
             <form id="emit" role="form" action="#" method="post">
                 <fieldset>
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="emit_data" id="emit_data"
-                               placeholder="请输入内容">
-                    </div>
-                    <button id="emit_data_submit" class="btn btn-lg btn-block btn-success"
-                            type="submit">发送
-                    </button>
+                    {% if allow_input %}
+                        <div class="form-group">
+                            <input type="text" class="form-control" name="emit_data" id="emit_data"
+                                   placeholder="请输入内容">
+                        </div>
+                        <button id="emit_data_submit" class="btn btn-lg btn-block btn-success"
+                                type="submit">发送
+                        </button>
+                    {% else %}
+                        <div class="form-group">
+                            <input type="text" class="form-control" name="emit_data" id="emit_data"
+                                   placeholder="请输入内容" disabled>
+                        </div>
+                        <button id="emit_data_submit" class="btn btn-lg btn-block btn-success"
+                                type="submit">发送
+                        </button>
+                    {% endif %}
                 </fieldset>
             </form>
         </div>
@@ -72,12 +82,16 @@
             socket.on('radio', function (msg) {
                 flush_message(msg);
             });
-
-            $('form#emit').submit(function (event) {
-                socket.emit('to_server', {data: $('#emit_data').val()});
-                $("#emit_data").val("");
-                return false;
-            });
+            {% if allow_input %}
+                $('form#emit').submit(function (event) {
+                    var txt = $('#emit_data').val();
+                    if (txt.length > 0) {
+                        socket.emit('to_server', {data: txt});
+                        $("#emit_data").val("");
+                    }
+                    return false;
+                });
+            {% endif %}
         });
     </script>
 {% endblock %}
