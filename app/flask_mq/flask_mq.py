@@ -15,31 +15,23 @@ from flask import current_app, Flask, g
 '''
 
 
-class BroadcasterBase:
-    def __init__(self, namespace):
-        self.client_namespace = namespace
-
-    def send(self, headers, message):
-        pass
-
-
 class MyListener(ConnectionListener):
     def __init__(self, listener_id, conn, namespace, callback):
         self.id = listener_id
         self.conn = conn
         self.namespace = namespace
-        self.broadcastObj = callback
+        self.broadcast_func = callback
 
     def on_error(self, headers, message):
         print('received an error "%s"' % message)
-        if self.broadcastObj:
-            self.broadcastObj(message)
 
     def on_message(self, headers, message):
         if headers['destination'] != self.namespace:
             return
-        if self.broadcastObj is not None:
-            self.broadcastObj.send(message)
+        if self.broadcast_func is not None:
+            print("""received an message, header:{header}, body:{message}""".
+                  format(header=headers, message=message))
+            self.broadcast_func(self.namespace, message)
         else:
             print("""received an message, header:{header}, body:{message}""".
                   format(header=headers, message=message))
@@ -54,10 +46,8 @@ class Mq(object):
         self.__broadcast_interface = None
         self.connect_name = "flask_web"
         self.passcode = "passcode"
-        self.listeners = []
         self.stomp_url, self.port, self.conn = None, None, None
         self.listeners = dict()
-        self.BroadcasterBase = BroadcasterBase
         if app is not None:
             self.init_app(app)
 
@@ -73,12 +63,16 @@ class Mq(object):
 
         self.connect()
 
+    def has_listener(self, namespace):
+        namespace = self.regular_namespace(namespace)
+        return namespace in self.listeners
+
     def connect(self):
         self.conn = Connection([(self.stomp_url, self.port)])
         self.conn.start()
         self.conn.connect(self.connect_name, self.passcode)
 
-    def subscribe(self, namespace, broadcast_obj):
+    def subscribe(self, namespace, callback_func):
         if not namespace.startswith("/topic/"):
             namespace = "/topic/" + namespace
 
@@ -86,7 +80,7 @@ class Mq(object):
         listener = MyListener(listener_id=listener_id,
                               conn=self.conn,
                               namespace=namespace,
-                              callback=broadcast_obj)
+                              callback=callback_func)
         self.listeners[listener_id] = listener
         self.conn.subscribe(destination=namespace, id=listener_id)
         self.conn.set_listener(listener_id, listener)
@@ -124,6 +118,12 @@ class Mq(object):
     def broadcast_interface(self, broadcast_interface):
         self.listener.broadcast_interface = broadcast_interface
         self.__broadcast_interface = broadcast_interface
+
+    @staticmethod
+    def regular_namespace(namespace: str):
+        if not namespace.startswith("/topic/"):
+            namespace = "/topic/" + namespace
+        return namespace
 
     @staticmethod
     def context_processor():

@@ -1,5 +1,6 @@
 from .. import db, socketio, mq
 from flask import g
+import sys
 from datetime import datetime
 from ..models import Role, User, Message
 import json
@@ -7,16 +8,16 @@ import json
 
 # TODO: 把flask.g用上
 
-class Broadcaster(mq.BroadcasterBase):
-    def __init__(self, namespace: str):
-        if namespace.startswith("/topic"):
-            namespace.replace("/topic", "")
-        self.client_namespace = namespace
-
-    def send(self, message):
-        message = json.loads(message)
-        socketio.emit("radio", {"data": message['data'], "count": message['count']},
-                      namespace=self.client_namespace, broadcast=True)
+# class Broadcaster(mq.BroadcasterBase):
+#     def __init__(self, namespace: str):
+#         if namespace.startswith("/topic"):
+#             namespace.replace("/topic", "")
+#         self.client_namespace = namespace
+#
+#     def send(self, message):
+#         message = json.loads(message)
+#         socketio.emit("radio", {"data": message['data'], "count": message['count']},
+#                       namespace=self.client_namespace, broadcast=True)
 
 
 def update_or_create_user(name):

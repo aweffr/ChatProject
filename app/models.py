@@ -81,6 +81,12 @@ class Message(db.Model):
     create_time = db.Column(db.DateTime, default=datetime.now())
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'))
 
+    def __init__(self, **kwargs):
+        super(Message, self).__init__(**kwargs)
+        if self.topic_id is None:
+            topic = Topic.query.filter_by(namespace='public').first()
+            self.topic_id = topic.id
+
     def __repr__(self):
         return '<Message %r>' % self.content
 
@@ -94,6 +100,12 @@ class Topic(db.Model):
 
     def __repr__(self):
         return '<Topic %r>' % self.namespace
+
+    @staticmethod
+    def insert_topic():
+        public_topic = Topic(namespace='public')
+        db.session.add(public_topic)
+        db.session.commit()
 
 
 class DatabaseInit:
