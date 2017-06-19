@@ -79,9 +79,21 @@ class Message(db.Model):
     content = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     create_time = db.Column(db.DateTime, default=datetime.now())
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'))
 
     def __repr__(self):
         return '<Message %r>' % self.content
+
+
+class Topic(db.Model):
+    __tablename__ = "topic"
+    id = db.Column(db.Integer, primary_key=True)
+    namespace = db.Column(db.String(64), unique=True, index=True)
+    create_time = db.Column(db.DateTime, default=datetime.now())
+    messages = db.relationship('Message', backref='topic', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Topic %r>' % self.namespace
 
 
 class DatabaseInit:
