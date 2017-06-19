@@ -7,7 +7,7 @@ from .forms import NameForm
 from .. import db
 from .. import mq
 from .. import socketio
-from ..models import User, Message
+from ..models import Message
 from .service import update_or_create_user, get_user_id, get_message_history
 import json
 
@@ -78,19 +78,22 @@ def index():
                            current_time=datetime.utcnow())
 
 
-@main.route("/chat", methods=['GET'])
-def chat():
+@main.route("/public_channel", methods=['GET'])
+def public_channel():
     if 'name' not in session:
         flash('Please enter your name first!')
         return redirect(url_for('.index'))
-    return render_template('chat.html', name=session.get("name"),
+    return render_template('public_channel.html', name=session.get("name"),
                            known=session.get("known", False),
-                           current_time=datetime.utcnow())
+                           current_time=datetime.utcnow(),
+                           allow_input=True)
 
 
 @main.route("/clear", methods=['GET'])
 def clear():
     if 'name' in session:
         session.pop('name')
+    if 'first_ack' in session:
+        session.pop('first_ack')
     session['known'] = False
     return redirect(url_for('.index'))
