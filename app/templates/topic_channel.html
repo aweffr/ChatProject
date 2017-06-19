@@ -11,7 +11,7 @@
     <div class="panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">消息版</h3>
-            <h4>所在频道:公共频道</h4>
+            <h4>所在频道:{{ topic_name }}</h4>
         </div>
         <div class="panel-body" id="log" style="height: 300px; overflow: auto"></div>
     </div>
@@ -65,11 +65,12 @@
 
             socket.on('connect', function () {
                 socket.emit('connect_ack', {
-                    data: 'Connected!',
-                    topic: 'public'
+                    data: 'Connected!'
                 });
-                socket.emit('get_history_from_server', {data: null});
             });
+
+            socket.emit('get_history_from_server', {data: null});
+            socket.emit('join', {topic: {{topic_name}}});
 
             socket.on('return_history_to_client', function (msg) {
                 var arr = JSON.parse(msg['data']);
@@ -91,7 +92,7 @@
                     if (txt.length > 0) {
                         socket.emit('to_server', {
                             data: txt,
-                            topic: 'public'
+                            topic: {{topic_name}}
                         });
                         $("#emit_data").val("");
                     }

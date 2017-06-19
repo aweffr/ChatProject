@@ -10,7 +10,10 @@
     {% if not known %}
         {{ wtf.quick_form(form) }}
     {% else %}
-        <button class="btn btn-lg btn-block btn-success" onclick="window.location='{{ url_for('main.chat') }}'">Chat!</button>
+        <button class="btn btn-lg btn-block btn-success"
+                onclick="window.location='{{ url_for('main.public_channel') }}'">
+            进入公共聊天室
+        </button>
     {% endif %}
     <p></p>
     <p>The local date and time is {{ moment(current_time).format('LLLL') }}.</p>
