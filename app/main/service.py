@@ -1,11 +1,11 @@
 from .. import db
 from flask import g
 from datetime import datetime
-from ..models import User, Message
-from .. import socketio
-from flask_socketio import emit
+from ..models import Role, User, Message
 import json
 
+
+# TODO: 把flask.g用上
 
 def update_or_create_user(name):
     user = User.query.filter_by(name=name).first()

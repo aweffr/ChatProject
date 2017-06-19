@@ -1,6 +1,6 @@
 import os
 from app import create_app, db, socketio, mq
-from app.models import User, Message
+from app.models import Role, User, Message
 from flask_script import Manager, Shell, Command
 from flask_migrate import Migrate, MigrateCommand
 
@@ -10,7 +10,12 @@ migrate = Migrate(app, db)
 
 
 def make_shell_context():
-    return dict(app=app, db=db, User=User, Message=Message, mq=mq)
+    return dict(app=app,
+                db=db,
+                Role=Role,
+                User=User,
+                Message=Message,
+                mq=mq)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
