@@ -8,6 +8,6 @@ from wtforms.validators import DataRequired, Length
 
 
 class NameForm(FlaskForm):
-    name = StringField('What is your name?',
+    name = StringField('请输入登录名',
                        validators=[DataRequired(), Length(min=1, message="至少一个字符")])
-    submit = SubmitField('Submit')
+    submit = SubmitField('提交')

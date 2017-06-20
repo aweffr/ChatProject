@@ -48,14 +48,19 @@ def get_user_id(name):
     return user.id
 
 
-def get_message_history():
+def get_message_history(topic_name):
     lst = []
-    for message_id, user_name, content, time in \
-            db.session.query(Message.id, User.name, Message.content, Message.create_time). \
-                    filter(User.id == Message.user_id).order_by(Message.id.desc()).limit(50).all():
-        d = {
-            "data": "@{author}: {message}".format(author=user_name, message=content),
-            "count": message_id
-        }
+    topic = Topic.query.filter_by(namespace=topic_name).first()
+    assert topic is not None
+    sql = db.session.query(Message.id, User.name, Message.content, Message.create_time). \
+        filter(User.id == Message.user_id).filter(Message.topic_id == topic.id).order_by(
+        Message.id.desc()).limit(50).all()
+    print("query SQL:", str(sql))
+    for message_id, user_name, content, time in sql:
+        d = {"data": "{author}@{time}: {message}".format(author=user_name,
+                                                         message=content,
+                                                         time=time.strftime("%Y-%m-%d %H:%M:%S")),
+             "topic": topic_name,
+             "count": message_id}
         lst.append(d)
     return json.dumps(lst[::-1])

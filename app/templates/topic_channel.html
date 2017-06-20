@@ -5,13 +5,17 @@
 
 {% block page_content %}
     <div class="page-header">
-        <h1>你好, {% if name %}{{ name }}{% else %}请登录{% endif %}!</h1>
+        <h2>你好, {% if name %}{{ name }}{% else %}请登录{% endif %}!</h2>
     </div>
 
     <div class="panel-default">
         <div class="panel-heading">
-            <h3 class="panel-title">消息版</h3>
-            <h3 class="panel-title">所在频道:{{ topic_name }}</h3>
+            <h2 class="panel-title">消息版</h2>
+            {% if topic_name == "public" %}
+                <h2 class="panel-title">所在频道: 广播频道</h2>
+            {% else %}
+                <h2 class="panel-title">所在频道:{{ topic_name }}</h2>
+            {% endif %}
         </div>
         <div class="panel-body" id="log_channel" style="height: 300px; overflow: auto"></div>
     </div>
@@ -54,7 +58,12 @@
     <script type="text/javascript" src="/static/jquery/jquery-3.2.1.min.js"></script>
     <script>
         function flush_message(msg) {
-            $('#log_channel').append('<br>' + $('<div/>').text('#' + msg.count + ': ' + msg.data).html());
+            if(msg.topic == "public"){
+                $('#log_channel').append('<br>'+'<b>' + $('<div/>').text(msg.data).html() + '</b>');
+            }
+            else {
+                $('#log_channel').append('<br>' + $('<div/>').text(msg.data).html());
+            }
             $('#log_channel').scrollTop(0x7fffffff);
         }
 
@@ -70,7 +79,10 @@
                     data: 'Connected!',
                     topic: topic_name
                 });
-                socket.emit('get_history_from_server', {data: null});
+                socket.emit('get_history_from_server', {
+                    data: null,
+                    topic: topic_name
+                });
             });
 
             socket.on('return_history_to_client', function (msg) {

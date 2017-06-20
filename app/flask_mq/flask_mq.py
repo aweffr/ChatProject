@@ -14,7 +14,6 @@ class MyListener(ConnectionListener):
 
     def on_message(self, headers, message):
         if headers['destination'] != self.namespace:
-            print("linstener启用了错误的on_message!")
             return
         if self.broadcast_func is not None:
             print("""{obj}received an message, header:{header}, body:{message}""".

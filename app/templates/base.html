@@ -22,23 +22,25 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li><a href="{{ url_for('main.index') }}">登录</a></li>
                 </ul>
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.public_channel') }}">ChatPage</a></li>
+                    <li><a href="{{ url_for('main.public_channel') }}">公共频道</a></li>
                 </ul>
                 <ul class="nav navbar-nav dropdown">
                     <li>
-                        <a class="nav navbar-nav dropdown-toggle" data-toggle="dropdown" href="#">Topics<b
+                        <a class="nav navbar-nav dropdown-toggle" data-toggle="dropdown" href="#">频道列表<b
                                 class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('main.topic_channel', topic_name='test1') }}">test1</a></li>
-                            <li><a href="{{ url_for('main.topic_channel', topic_name='test2') }}">test2</a></li>
+                            <li><a href="{{ url_for('main.topic_channel', topic_name='test1') }}">子频道1</a></li>
+                            <li><a href="{{ url_for('main.topic_channel', topic_name='test2') }}">子频道2</a></li>
+                            <li><a href="{{ url_for('main.topic_channel', topic_name='test3') }}">子频道3</a></li>
+                            <li><a href="{{ url_for('main.topic_channel', topic_name='test4') }}">子频道4</a></li>
                         </ul>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.clear') }}">Clear</a></li>
+                    <li><a href="{{ url_for('main.clear') }}">登出</a></li>
                 </ul>
             </div>
         </div>

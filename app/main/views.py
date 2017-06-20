@@ -14,15 +14,13 @@ import json
 
 def broadcast_to_client(namespace: str, message):
     message = json.loads(message)
-    if namespace.startswith("/topic/"):
-        namespace = namespace.replace("/topic", "", 1)
-    send_room = namespace.strip("/")
+    send_room = namespace.replace("/topic", "", 1).strip("/")
     print("Sending Room name:", send_room)
-    if namespace != "/public":
+    if send_room != "public":
         socketio.emit("radio", {"data": message['data'], "count": message['count']},
                       namespace="/room1", room=send_room)
     else:
-        socketio.emit("radio", {"data": message['data'], "count": message['count']},
+        socketio.emit("radio", {"data": message['data'], "count": message['count'], "topic": message['topic']},
                       namespace="/room1", broadcast=True)
 
 
@@ -36,29 +34,31 @@ def connect_ack(recv_data):
     if recv_data['data'] == 'Connected!' and 'first_ack' not in session:
         data = "@{author} has enter the room!".format(author=session['name'])
         session['first_ack'] = True
+    elif 'first_ack' not in session:
+        data = "ReConnect."
     else:
         data = "Error!"
 
-    if recv_data['topic'].find("public") == -1:
-        print("join_room(room_name={name})".format(name=recv_data['topic']))
-        join_room(recv_data['topic'])
+    topic_name = recv_data['topic']
+    join_room(recv_data['topic'])
+    topic = update_or_create_topic(topic_name=topic_name)
+    session["topic_id"] = topic.id
 
-    topic = recv_data['topic']
-    if not mq.has_listener(topic):
-        mq.subscribe(namespace=topic, callback_func=broadcast_to_client)
+    if not mq.has_listener(topic_name):
+        mq.subscribe(namespace=topic_name, callback_func=broadcast_to_client)
 
     emit("to_client", {"data": data, "count": '/'})
 
 
-@socketio.on('join', namespace="/room1")
-def join(message):
-    print("in socket func: join message: %r" % message)
-    topic = str(message['topic'])
-    print("Now join room, room name = {topic}".format(topic=topic))
-    join_room(topic)
-    emit('to_client',
-         {'data': 'In topic: ' + ', '.join(rooms()),
-          'count': '/'})
+# @socketio.on('join', namespace="/room1")
+# def join(message):
+#     print("in socket func: join message: %r" % message)
+#     topic = str(message['topic'])
+#     print("Now join room, room name = {topic}".format(topic=topic))
+#     join_room(topic)
+#     emit('to_client',
+#          {'data': 'In topic: ' + ', '.join(rooms()),
+#           'count': '/'})
 
 
 @socketio.on("to_server", namespace="/room1")
@@ -70,12 +70,14 @@ def recv(recv_data):
     name = session['name']
     topic_name = recv_data['topic']
 
-    message = Message(user_id=session['id'], content=recv_data['data'])
+    message = Message(user_id=session['id'], content=recv_data['data'], topic_id=session["topic_id"])
     db.session.add(message)
-    data = "@{author}: {message}".format(author=name, message=message.content)
     db.session.commit()
+    data = "{author}@{time}: {message}".format(author=name,
+                                                time=message.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+                                                message=message.content)
 
-    mq.send(content=json.dumps({"data": data, "count": message.id}),
+    mq.send(content=json.dumps({"data": data, "count": message.id, "topic": topic_name}),
             namespace=topic_name)
 
 
@@ -85,7 +87,10 @@ def get_history(recv_data):
         name = session['name']
         user_id = get_user_id(name)
         session['id'] = user_id
-    data = get_message_history()
+
+    topic_name = recv_data['topic']
+    data = get_message_history(topic_name=topic_name)
+
     emit("return_history_to_client", {"data": data}, broadcast=False)
 
 
@@ -110,10 +115,11 @@ def public_channel():
     if 'name' not in session:
         flash('Please enter your name first!')
         return redirect(url_for('.index'))
-    return render_template('public_channel.html', name=session.get("name"),
+    return render_template('topic_channel.html', name=session.get("name"),
                            known=session.get("known", False),
                            current_time=datetime.utcnow(),
-                           allow_input=True)
+                           allow_input=True,
+                           topic_name="public")
 
 
 @main.route("/channel-<topic_name>", methods=['GET'])
