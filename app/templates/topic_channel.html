@@ -11,16 +11,16 @@
     <div class="panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">消息版</h3>
-            <h4>所在频道:{{ topic_name }}</h4>
+            <h3 class="panel-title">所在频道:{{ topic_name }}</h3>
         </div>
-        <div class="panel-body" id="log" style="height: 300px; overflow: auto"></div>
+        <div class="panel-body" id="log_channel" style="height: 300px; overflow: auto"></div>
     </div>
     <div class="panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">提交</h3>
         </div>
         <div class="panel-body">
-            <form id="emit" role="form" action="#" method="post">
+            <form id="emit_channel" role="form" action="#" method="post">
                 <fieldset>
                     {% if allow_input %}
                         <div class="form-group">
@@ -54,9 +54,11 @@
     <script type="text/javascript" src="/static/jquery/jquery-3.2.1.min.js"></script>
     <script>
         function flush_message(msg) {
-            $('#log').append('<br>' + $('<div/>').text('#' + msg.count + ': ' + msg.data).html());
-            $('#log').scrollTop(0x7fffffff);
+            $('#log_channel').append('<br>' + $('<div/>').text('#' + msg.count + ': ' + msg.data).html());
+            $('#log_channel').scrollTop(0x7fffffff);
         }
+
+        var topic_name = "{{topic_name}}";
 
         $(document).ready(function () {
             var namespace = '/room1';
@@ -65,16 +67,19 @@
 
             socket.on('connect', function () {
                 socket.emit('connect_ack', {
-                    data: 'Connected!'
+                    data: 'Connected!',
+                    topic: topic_name
                 });
+                socket.emit('get_history_from_server', {data: null});
             });
 
-            socket.emit('get_history_from_server', {data: null});
-            socket.emit('join', {topic: {{topic_name}}});
+            socket.emit('join', {
+                topic:topic_name
+            });
 
             socket.on('return_history_to_client', function (msg) {
                 var arr = JSON.parse(msg['data']);
-                for (i = 0; i < arr.length; i++) {
+                for (var i = 0; i < arr.length; i++) {
                     flush_message(arr[i]);
                 }
             });
@@ -87,12 +92,12 @@
                 flush_message(msg);
             });
             {% if allow_input %}
-                $('form#emit').submit(function (event) {
+                $('form#emit_channel').submit(function (event) {
                     var txt = $('#emit_data').val();
                     if (txt.length > 0) {
                         socket.emit('to_server', {
                             data: txt,
-                            topic: {{topic_name}}
+                            topic: topic_name
                         });
                         $("#emit_data").val("");
                     }

@@ -11,7 +11,7 @@
     <div class="panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">消息版</h3>
-            <h4>所在频道:公共频道</h4>
+            <h3 class="panel-title">所在频道:公共频道</h3>
         </div>
         <div class="panel-body" id="log" style="height: 300px; overflow: auto"></div>
     </div>
@@ -73,7 +73,7 @@
 
             socket.on('return_history_to_client', function (msg) {
                 var arr = JSON.parse(msg['data']);
-                for (i = 0; i < arr.length; i++) {
+                for (var i = 0; i < arr.length; i++) {
                     flush_message(arr[i]);
                 }
             });
