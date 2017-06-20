@@ -12,13 +12,20 @@ from .service import update_or_create_user, get_user_id, get_message_history
 import json
 
 
-def broadcast_to_client(namespcae, message):
+def broadcast_to_client(namespace: str, message):
     message = json.loads(message)
-    socketio.emit("radio", {"data": message['data'], "count": message['count']},
-                  namespace="/room1", broadcast=True)
+    if namespace.startswith("/topic"):
+        namespace = namespace.replace("/topic", "", 1)
+    if namespace != "/public":
+        print(namespace)
+        socketio.emit("radio", {"data": message['data'], "count": message['count']},
+                      namespace="/room1", room=namespace)
+    else:
+        socketio.emit("radio", {"data": message['data'], "count": message['count']},
+                      namespace="/room1", broadcast=True)
 
 
-@socketio.on_error('/room1')  # handles the '/chat' namespace
+@socketio.on_error('/room1')
 def error_handler_chat(e):
     print("socket Error:", e)
     return redirect(url_for("main.index"))
@@ -39,7 +46,9 @@ def connect_ack(recv_data):
 
 @socketio.on('join')
 def join(message):
-    join_room(message['topic'])
+    print("in socket func: join message: %r" % message)
+    topic = str(message['topic'])
+    join_room(topic)
     emit('to_client',
          {'data': 'In topic: ' + ', '.join(rooms()),
           'count': '/'})
