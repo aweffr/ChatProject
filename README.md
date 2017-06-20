@@ -8,6 +8,16 @@
 
 
 ### Development Log
+- 2017.6.20
+    - 在Pycharm中开启gevent的support才可以单步调试
+    - 修了个包里的bug(中文不显示):
+        - python3.6环境
+        - 在engineio/payload.py中, packet_len需要更新,而双重encode并不能保证进入except字句修正packet_len
+        - 采用```packet_len = len(fixed_payload)```来修正.
+        - fix_payload的定义为:
+            - ```fixed_payload = encoded_payload.decode('utf-8').encode('raw_unicode_escape')```
+
+
 - 2017.6.16
     - 考虑按以下方式实现消息回执:
     - 服务器会忠实地在namespace里对客户端广播ActiveMQ对应的每一条消息, 带上user_id和message_id

@@ -2,7 +2,7 @@ from .. import db, socketio, mq
 from flask import g
 import sys
 from datetime import datetime
-from ..models import Role, User, Message
+from ..models import Role, User, Message, Topic
 import json
 
 
@@ -18,6 +18,14 @@ import json
 #         message = json.loads(message)
 #         socketio.emit("radio", {"data": message['data'], "count": message['count']},
 #                       namespace=self.client_namespace, broadcast=True)
+
+def update_or_create_topic(topic_name):
+    topic = Topic.query.filter_by(namespace=topic_name).first()
+    if topic is None:
+        topic = Topic.create_topic(namespace=topic_name)
+    else:
+        topic.last_visit = datetime.now()
+    return topic
 
 
 def update_or_create_user(name):

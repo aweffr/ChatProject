@@ -14,10 +14,11 @@ class MyListener(ConnectionListener):
 
     def on_message(self, headers, message):
         if headers['destination'] != self.namespace:
+            print("linstener启用了错误的on_message!")
             return
         if self.broadcast_func is not None:
-            print("""received an message, header:{header}, body:{message}""".
-                  format(header=headers, message=message))
+            print("""{obj}received an message, header:{header}, body:{message}""".
+                  format(obj=self, header=headers, message=message))
             self.broadcast_func(self.namespace, message)
         else:
             print("""received an message, header:{header}, body:{message}""".
@@ -25,6 +26,9 @@ class MyListener(ConnectionListener):
 
     def on_disconnected(self):
         print('disconnected')
+
+    def __repr__(self):
+        return "<MyListener namespace=%r>" % self.namespace
 
 
 class Mq(object):
@@ -52,7 +56,7 @@ class Mq(object):
         self.connect()
 
     def has_listener(self, namespace):
-        namespace = self.regular_namespace(namespace)
+        namespace = "flask_app" + self.regular_namespace(namespace)
         return namespace in self.listeners
 
     def connect(self):
@@ -71,7 +75,9 @@ class Mq(object):
                               callback=callback_func)
         self.listeners[listener_id] = listener
         self.conn.subscribe(destination=namespace, id=listener_id)
+        print("Before subscribe, self.conn.transport.listeners=", self.conn.transport.listeners)
         self.conn.set_listener(listener_id, listener)
+        print("After subscribe, self.conn.transport.listeners=", self.conn.transport.listeners)
 
     def send(self, content: str, namespace: str = None):
         if namespace is None:

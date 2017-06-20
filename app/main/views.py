@@ -8,18 +8,19 @@ from .. import db
 from .. import mq
 from .. import socketio
 from ..models import Message
-from .service import update_or_create_user, get_user_id, get_message_history
+from .service import update_or_create_user, get_user_id, get_message_history, update_or_create_topic
 import json
 
 
 def broadcast_to_client(namespace: str, message):
     message = json.loads(message)
-    if namespace.startswith("/topic"):
+    if namespace.startswith("/topic/"):
         namespace = namespace.replace("/topic", "", 1)
+    send_room = namespace.strip("/")
+    print("Sending Room name:", send_room)
     if namespace != "/public":
-        print(namespace)
         socketio.emit("radio", {"data": message['data'], "count": message['count']},
-                      namespace="/room1", room=namespace)
+                      namespace="/room1", room=send_room)
     else:
         socketio.emit("radio", {"data": message['data'], "count": message['count']},
                       namespace="/room1", broadcast=True)
@@ -28,7 +29,6 @@ def broadcast_to_client(namespace: str, message):
 @socketio.on_error('/room1')
 def error_handler_chat(e):
     print("socket Error:", e)
-    return redirect(url_for("main.index"))
 
 
 @socketio.on("connect_ack", namespace="/room1")
@@ -36,18 +36,25 @@ def connect_ack(recv_data):
     if recv_data['data'] == 'Connected!' and 'first_ack' not in session:
         data = "@{author} has enter the room!".format(author=session['name'])
         session['first_ack'] = True
+    else:
+        data = "Error!"
+
+    if recv_data['topic'].find("public") == -1:
+        print("join_room(room_name={name})".format(name=recv_data['topic']))
+        join_room(recv_data['topic'])
+
     topic = recv_data['topic']
     if not mq.has_listener(topic):
         mq.subscribe(namespace=topic, callback_func=broadcast_to_client)
-    else:
-        data = "Error!"
+
     emit("to_client", {"data": data, "count": '/'})
 
 
-@socketio.on('join')
+@socketio.on('join', namespace="/room1")
 def join(message):
     print("in socket func: join message: %r" % message)
     topic = str(message['topic'])
+    print("Now join room, room name = {topic}".format(topic=topic))
     join_room(topic)
     emit('to_client',
          {'data': 'In topic: ' + ', '.join(rooms()),
@@ -79,7 +86,7 @@ def get_history(recv_data):
         user_id = get_user_id(name)
         session['id'] = user_id
     data = get_message_history()
-    emit("return_history_to_client", {"data": data}, broadcast=True)
+    emit("return_history_to_client", {"data": data}, broadcast=False)
 
 
 @main.route("/", methods=['GET', 'POST'])
@@ -109,11 +116,12 @@ def public_channel():
                            allow_input=True)
 
 
-@main.route("/channel_<topic_name>", methods=['GET'])
+@main.route("/channel-<topic_name>", methods=['GET'])
 def topic_channel(topic_name):
     if 'name' not in session:
         flash('Please enter your name first!')
         return redirect(url_for('.index'))
+    topic = update_or_create_topic(topic_name)
     return render_template('topic_channel.html', name=session.get("name"),
                            known=session.get("known", False),
                            current_time=datetime.utcnow(),

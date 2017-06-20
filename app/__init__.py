@@ -29,7 +29,7 @@ def create_app(config_name: str):
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
-    socketio.init_app(app, async_mode=app.config['ASYNC_MODE'])
+    socketio.init_app(app, async_mode=app.config['ASYNC_MODE'], engineio_logger=app.config['ENABLE_ENGINEIO_LOGGER'])
     mq.init_app(app)
 
     # 附加路由和自定义的错误页面

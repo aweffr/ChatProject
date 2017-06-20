@@ -8,6 +8,7 @@ class Config:
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     ASYNC_MODE = "gevent"
+    ENABLE_ENGINEIO_LOGGER = False
 
     @staticmethod
     def init_app():
@@ -22,6 +23,7 @@ class DevelopmentConfig(Config):
     STOMP_URL = "101.37.24.136"
     STOMP_PORT = 61613
     STOMP_PUBLIC_NAMESPACE = "public"
+    ENABLE_ENGINEIO_LOGGER = True
 
 
 class TestingConfig(Config):

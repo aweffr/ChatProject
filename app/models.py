@@ -96,6 +96,7 @@ class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     namespace = db.Column(db.String(64), unique=True, index=True)
     create_time = db.Column(db.DateTime, default=datetime.now())
+    last_visit = db.Column(db.DateTime, default=datetime.now())
     messages = db.relationship('Message', backref='topic', lazy='dynamic')
 
     def __repr__(self):
@@ -106,6 +107,13 @@ class Topic(db.Model):
         public_topic = Topic(namespace='public')
         db.session.add(public_topic)
         db.session.commit()
+
+    @staticmethod
+    def create_topic(namespace: str):
+        topic = Topic(namespace=namespace)
+        db.session.add(topic)
+        db.session.commit()
+        return topic
 
 
 class DatabaseInit:

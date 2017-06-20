@@ -27,6 +27,16 @@
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('main.public_channel') }}">ChatPage</a></li>
                 </ul>
+                <ul class="nav navbar-nav dropdown">
+                    <li>
+                        <a class="nav navbar-nav dropdown-toggle" data-toggle="dropdown" href="#">Topics<b
+                                class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('main.topic_channel', topic_name='test1') }}">test1</a></li>
+                            <li><a href="{{ url_for('main.topic_channel', topic_name='test2') }}">test2</a></li>
+                        </ul>
+                    </li>
+                </ul>
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('main.clear') }}">Clear</a></li>
                 </ul>
