@@ -17,8 +17,9 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
-                              "sqlite:///" + os.path.join(basedir, "data-dev.sqlite")
+    # SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
+    #                           "sqlite:///" + os.path.join(basedir, "data-dev.sqlite")
+    SQLALCHEMY_DATABASE_URI =  "mysql://aweffr:summer123@aweffr.win/chat"
     DROP_AND_CREATE = os.environ.get("DROP_AND_CREATE" or False)
     STOMP_URL = "101.37.24.136"
     STOMP_PORT = 61613
