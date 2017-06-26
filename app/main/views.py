@@ -59,7 +59,10 @@ def recv(recv_data):
     name = session['name']
     topic_name = recv_data['topic']
 
-    message = Message(user_id=session['id'], content=recv_data['data'], topic_id=session["topic_id"])
+    message = Message(user_id=session['id'],
+                      content=recv_data['data'],
+                      topic_id=session["topic_id"],
+                      create_time=datetime.now())
     db.session.add(message)
     db.session.commit()
     data = "{author}@{time}: {message}".format(author=name,
