@@ -1,9 +1,8 @@
 from datetime import datetime
-from flask import render_template, session, redirect, url_for, flash, g
+from flask import render_template, session, redirect, url_for, flash, g, current_app
 from flask_socketio import emit, join_room, rooms
 
 from . import main
-from .forms import NameForm
 from .. import db
 from .. import mq
 from .. import socketio
@@ -15,7 +14,6 @@ import json
 def broadcast_to_client(namespace: str, message):
     message = json.loads(message)
     send_room = namespace.replace("/topic", "", 1).strip("/")
-    print("Sending Room name:", send_room)
     if send_room != "public":
         socketio.emit("radio", {"data": message['data'], "count": message['count']},
                       namespace="/room1", room=send_room)
@@ -31,11 +29,13 @@ def error_handler_chat(e):
 
 @socketio.on("connect_ack", namespace="/room1")
 def connect_ack(recv_data):
-    if recv_data['data'] == 'Connected!' and 'first_ack' not in session:
-        data = "@{author} has enter the room!".format(author=session['name'])
+    if "first_ack" in session and session["first_ack"]:
+        data = "{author}@{time} 重新连接".format(author=session['name'],
+                                             time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    elif recv_data['data'] == 'Connected!':
+        data = "{author}@{time} 进入了聊天室".format(author=session['name'],
+                                               time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         session['first_ack'] = True
-    elif 'first_ack' not in session:
-        data = "ReConnect."
     else:
         data = "Error!"
 
@@ -66,8 +66,8 @@ def recv(recv_data):
     db.session.add(message)
     db.session.commit()
     data = "{author}@{time}: {message}".format(author=name,
-                                                time=message.create_time.strftime("%Y-%m-%d %H:%M:%S"),
-                                                message=message.content)
+                                               time=message.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+                                               message=message.content)
 
     mq.send(content=json.dumps({"data": data, "count": message.id, "topic": topic_name}),
             namespace=topic_name)
@@ -88,24 +88,33 @@ def get_history(recv_data):
 
 @main.route("/", methods=['GET', 'POST'])
 def index():
-    form = NameForm()
-    if form.validate_on_submit():
-        name = form.name.data
-        user = update_or_create_user(name)
-        session['name'] = user.name
-        session['known'] = True
-        form.name.data = ""
+    user = session.get("name", None)
+    if user is None:
+        if "active_logout" in session and session["active_logout"] is True:
+            session.pop("active_logout")
+        else:
+            flash('请先登录!')
+        return redirect(url_for("auth.login"))
+    else:
         return redirect(url_for(".public_channel"))
-    return render_template('index.html',
-                           form=form, name=session.get("name"),
-                           known=session.get("known", False),
-                           current_time=datetime.utcnow())
+
+        # form = NameForm()
+        # if form.validate_on_submit():
+        #     name = form.name.data
+        #     user = update_or_create_user(name)
+        #     session['name'] = user.name
+        #     session['known'] = True
+        #     form.name.data = ""
+        #     return redirect(url_for(".public_channel"))
+        # return render_template('index.html',
+        #                        form=form, name=session.get("name"),
+        #                        known=session.get("known", False),
+        #                        current_time=datetime.utcnow())
 
 
 @main.route("/public_channel", methods=['GET'])
 def public_channel():
     if 'name' not in session:
-        flash('Please enter your name first!')
         return redirect(url_for('.index'))
     return render_template('topic_channel.html', name=session.get("name"),
                            known=session.get("known", False),
@@ -117,7 +126,6 @@ def public_channel():
 @main.route("/channel-<topic_name>", methods=['GET'])
 def topic_channel(topic_name):
     if 'name' not in session:
-        flash('Please enter your name first!')
         return redirect(url_for('.index'))
     topic = update_or_create_topic(topic_name)
     return render_template('topic_channel.html', name=session.get("name"),

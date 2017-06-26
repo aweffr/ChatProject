@@ -16,8 +16,6 @@ class MyListener(ConnectionListener):
         if headers['destination'] != self.namespace:
             return
         if self.broadcast_func is not None:
-            print("""{obj}received an message, header:{header}, body:{message}""".
-                  format(obj=self, header=headers, message=message))
             self.broadcast_func(self.namespace, message)
         else:
             print("""received an message, header:{header}, body:{message}""".

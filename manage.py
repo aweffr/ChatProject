@@ -1,7 +1,7 @@
 import os
 import sys
 from app import create_app, db, socketio, mq
-from app.models import Role, User, Message, DatabaseInit, Topic
+from app.models import Role, User, Message, Topic
 from flask_script import Manager, Shell, Command
 from flask_migrate import Migrate, MigrateCommand
 
@@ -16,10 +16,7 @@ def make_shell_context():
                 Role=Role,
                 User=User,
                 Message=Message,
-                mq=mq,
-                DatabaseInit=DatabaseInit,
-                # Broadcaster=Broadcaster)
-                )
+                mq=mq)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
@@ -30,17 +27,25 @@ class MyRunserver(Command):
     def run(self):
         socketio.run(app)
 
-
-class ResetDB(Command):
-    def run(self):
-        db.drop_all()
-        db.create_all()
-        Role.insert_roles()
-        Topic.insert_topic()
-
-
 manager.add_command("myrunserver", MyRunserver())
-manager.add_command("resetdb", ResetDB())
+
+
+@manager.command
+def test():
+    """Run the unit tests."""
+    import unittest
+    tests = unittest.TestLoader().discover(start_dir='tests', pattern='test*.py')
+    unittest.TextTestRunner(verbosity=2).run(tests)
+
+
+@manager.command
+def init_db():
+    db.drop_all()
+    db.create_all()
+    Role.init_roles()
+    User.init_user()
+    Topic.init_topic()
+
 
 if __name__ == "__main__":
     manager.run()

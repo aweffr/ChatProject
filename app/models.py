@@ -1,5 +1,8 @@
 from . import db
+from . import login_manager
 from datetime import datetime
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class RoleLevel:
@@ -32,16 +35,16 @@ class Role(db.Model):
         return '<Role %r>' % self.name
 
     @staticmethod
-    def insert_roles():
+    def init_roles():
         p_user = Permission.RECEIVE | Permission.COMMENT
         p_operator = Permission.RECEIVE | Permission.COMMENT | Permission.DELETE
         p_admin = Permission.RECEIVE | Permission.COMMENT | Permission.DELETE | Permission.CREATE_TOPIC
         p_root = Permission.RECEIVE | Permission.COMMENT | Permission.DELETE | Permission.CREATE_TOPIC
 
-        roles = {'user': (RoleLevel.USER, p_user, True),
-                 'operator': (RoleLevel.OPERATOR, p_operator, False),
+        roles = {'root': (RoleLevel.ROOT, p_root, False),
                  'admin': (RoleLevel.ADMIN, p_admin, False),
-                 'root': (RoleLevel.ROOT, p_root, False)}
+                 'operator': (RoleLevel.OPERATOR, p_operator, False),
+                 'user': (RoleLevel.USER, p_user, True), }
 
         for r in roles:
             role = Role.query.filter_by(name=r).first()
@@ -53,11 +56,13 @@ class Role(db.Model):
         db.session.commit()
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
     name = db.Column(db.String(64), unique=True, index=True)
+    email = db.Column(db.String(64), unique=True, index=True)
+    password_hash = db.Column(db.String(128))
     create_time = db.Column(db.DateTime, default=datetime.now())
     last_login = db.Column(db.DateTime, default=datetime.now())
     last_mod = db.Column(db.DateTime, default=datetime.now())
@@ -69,8 +74,36 @@ class User(db.Model):
             role = Role.query.filter_by(default=True).first()
             self.role_id = role.id
 
+    @property
+    def password(self):
+        raise AttributeError("password is not a readable attribute")
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
     def __repr__(self):
         return '<User %r>' % self.name
+
+    @staticmethod
+    def init_user():
+        admin_role = Role.query.filter_by(name="admin").first()
+        root_role = Role.query.filter_by(name="root").first()
+        assert admin_role is not None and root_role is not None
+
+        root = User(role_id=root_role.id, name="root", email="root@huami.com", password="root")
+        admin = User(role_id=admin_role.id, name="admin", email="admin@huami.com", password="admin")
+
+        db.session.add_all([root, admin, ])
+        db.session.commit()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 class Message(db.Model):
@@ -103,7 +136,7 @@ class Topic(db.Model):
         return '<Topic %r>' % self.namespace
 
     @staticmethod
-    def insert_topic():
+    def init_topic():
         public_topic = Topic(namespace='public')
         db.session.add(public_topic)
         db.session.commit()
@@ -114,14 +147,3 @@ class Topic(db.Model):
         db.session.add(topic)
         db.session.commit()
         return topic
-
-
-class DatabaseInit:
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def run():
-        db.drop_all()
-        db.create_all()
-        Role.insert_roles()
