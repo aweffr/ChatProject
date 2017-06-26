@@ -25,7 +25,7 @@ manager.add_command("db", MigrateCommand)
 
 class MyRunserver(Command):
     def run(self):
-        socketio.run(app)
+        socketio.run(app, host="0.0.0.0", port=5000)
 
 manager.add_command("myrunserver", MyRunserver())
 
