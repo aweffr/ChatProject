@@ -50,17 +50,6 @@ def connect_ack(recv_data):
     emit("to_client", {"data": data, "count": '/'})
 
 
-# @socketio.on('join', namespace="/room1")
-# def join(message):
-#     print("in socket func: join message: %r" % message)
-#     topic = str(message['topic'])
-#     print("Now join room, room name = {topic}".format(topic=topic))
-#     join_room(topic)
-#     emit('to_client',
-#          {'data': 'In topic: ' + ', '.join(rooms()),
-#           'count': '/'})
-
-
 @socketio.on("to_server", namespace="/room1")
 def recv(recv_data):
     if 'id' not in session:
