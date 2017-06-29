@@ -10,17 +10,13 @@
 APP的代码组织结构严格参考*Flask Web Development(Miguel Grinberg著)*
 
 ## 重要
-APP所依赖的`python-engineio 1.5.4` 在接收socket报文时对含有中文的内容会报错，修复方法为python运行环境下.../site-packages/engineio/payload.py文件中, 在代码
-
-```encoded_payload = fixed_payload```
-
+APP所依赖的`python-engineio 1.5.4` 在接收socket报文时对含有中文的内容会报错，修复方法为python运行环境下.../site-packages/engineio/payload.py文件中, 在代码```encoded_payload = fixed_payload```
 语句下增加一行:
-
 ```packet_len = len(fixed_payload)```
-
 强制刷新包长度即可修复改bug。
 
-可复制本项目/patch文件夹下的payload.py覆盖对应python安装目录下文件解决。
+**可复制本项目/patch文件夹下的payload.py覆盖对应python安装目录下文件解决。**
+
 
 # 部署方法
 ### 安装python解释器
