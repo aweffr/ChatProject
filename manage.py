@@ -23,17 +23,17 @@ manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command("db", MigrateCommand)
 
 
-class MyRunserver(Command):
-    def run(self):
-        socketio.run(app, host="0.0.0.0", port=5000)
+@manager.command
+def develop_run():
+    """Run with debug"""
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 
-manager.add_command("myrunserver", MyRunserver())
 
 @manager.command
-def production():
+def production_run():
     "Run with produciton"
-    socketio.run(app, host="0.0.0.0", port=5000,
-                 debug=False)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=False)
+
 
 @manager.command
 def test():

@@ -21,8 +21,18 @@ APP所依赖的`python-engineio 1.5.4` 在接收socket报文时对含有中文�
 # 部署方法
 ### 安装python解释器
 1. 安装python3.6.1
-2. `git clone https://github.com/aweffr/ChatProject.git`
-或者解压压缩包`ChatProject.zip`
+    1. `wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2rc1.tgz`
+    2. `tar -zxf Python-3.6.2rc1.tgz`
+    3. 编译安装(`make test`可跳过)
+        ```
+        cd Python-3.6.2rc1/
+        ./configure
+        make
+        make test
+        sudo make install
+        ```
+### 获取源代码
+2. `git clone https://github.com/aweffr/ChatProject.git`或者解压`ChatProject.zip`
 3. `cd ChatProject`
 
 ### [可选]创建并激活虚拟环境:
@@ -49,8 +59,25 @@ STOMP_PUBLIC_NAMESPACE = "public"
 #### 初始化数据库
 8. `python manage.py init_db`
 
+### 配置启动绑定端口`manage.py`
+9. 可配置develop_run和production_run两种对应的端口(host和post)
+    ```
+    @manager.command
+    def develop_run():
+        """Run with debug"""
+        socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    
+    
+    @manager.command
+    def production_run():
+        "Run with produciton"
+        socketio.run(app, host="0.0.0.0", port=5000, debug=False)
+    ```
+
 ### 启动
-9. `python manage.py production`
+9. 两种启动设置:
+    - (debug模式) `python manage.py develop_run`
+    - (正常模式)`python manage.py production_run`
 
 其它:
 
@@ -62,4 +89,3 @@ STOMP_PUBLIC_NAMESPACE = "public"
     - 账户: root@huami.com 密码: root
     - 账户: admin@huami.com 密码: admin
     
-- 采用:`python manage.py production`不会打印debug信息。若需打印debug信息，请采用`python manage.py myrunserver`方式启动
