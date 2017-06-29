@@ -8,6 +8,7 @@ from .. import mq
 from .. import socketio
 from ..models import Message
 from .service import update_or_create_user, get_user_id, get_message_history, update_or_create_topic
+from .service import get_topic_name_list
 import json
 
 
@@ -29,6 +30,11 @@ def error_handler_chat(e):
 
 @socketio.on("connect_ack", namespace="/room1")
 def connect_ack(recv_data):
+    """
+
+    :param recv_data:
+    :return:
+    """
     if "first_ack" in session and session["first_ack"]:
         data = "{author}@{time} 重新连接".format(author=session['name'],
                                              time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -114,25 +120,29 @@ def index():
 
 @main.route("/public_channel", methods=['GET'])
 def public_channel():
+    topic_name_list = get_topic_name_list()
     if 'name' not in session:
         return redirect(url_for('.index'))
     return render_template('topic_channel.html', name=session.get("name"),
                            known=session.get("known", False),
                            current_time=datetime.utcnow(),
                            allow_input=True,
-                           topic_name="public")
+                           topic_name="public",
+                           topic_name_list=topic_name_list)
 
 
 @main.route("/channel-<topic_name>", methods=['GET'])
 def topic_channel(topic_name):
     if 'name' not in session:
         return redirect(url_for('.index'))
+    topic_name_list = get_topic_name_list()
     topic = update_or_create_topic(topic_name)
     return render_template('topic_channel.html', name=session.get("name"),
                            known=session.get("known", False),
                            current_time=datetime.utcnow(),
                            allow_input=True,
-                           topic_name=topic_name)
+                           topic_name=topic_name,
+                           topic_name_list=topic_name_list)
 
 
 @main.route("/clear", methods=['GET'])

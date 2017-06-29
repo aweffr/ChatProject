@@ -27,8 +27,6 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or "mysql://aweffr:summer123@aweffr.win/chat"
     DROP_AND_CREATE = os.environ.get("DROP_AND_CREATE" or False)
     ENABLE_ENGINEIO_LOGGER = False
-    TOPIC_LIST = os.environ.get("DEV_TOPIC_LIST") or \
-                 ["海底捞", "汉堡王", "漫画同好会", "小时代", "围观组"]
 
 
 class TestingConfig(Config):

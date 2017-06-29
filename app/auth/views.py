@@ -1,9 +1,11 @@
-from flask import render_template, redirect, request, url_for, flash, session
+from flask import render_template, redirect, request, url_for, flash, session, g
 from flask_login import login_user, login_required, logout_user
 from . import auth
 from .. import db
 from ..models import User
 from .forms import LoginForm, RegistrationForm
+
+from ..main.service import get_topic_name_list
 
 
 @auth.route("/login", methods=['GET', 'POST'])
@@ -17,7 +19,8 @@ def login():
             session["known"] = True
             return redirect(request.args.get('next') or url_for("main.index"))
         flash("Invalid username or password.")
-    return render_template("auth/login.html", form=form)
+    return render_template("auth/login.html", form=form,
+                           topic_name_list=get_topic_name_list())
 
 
 @auth.route("/logout")
@@ -43,4 +46,5 @@ def register():
         db.session.add(user)
         flash("注册成功， 请登录")
         return redirect(url_for("auth.login"))
-    return render_template("auth/register.html", form=form)
+    return render_template("auth/register.html", form=form,
+                           topic_name_list=get_topic_name_list())

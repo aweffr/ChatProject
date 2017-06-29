@@ -1,23 +1,20 @@
 from .. import db, socketio, mq
-from flask import g
-import sys
 from datetime import datetime
 from ..models import Role, User, Message, Topic
+from functools import lru_cache
 import json
 
 
-# TODO: 把flask.g用上
+@lru_cache(maxsize=16)
+def get_topic_name_list():
+    tmp = Topic.query.order_by(Topic.id.asc()).all()
+    topic_name_list = []
+    for topic in tmp:
+        if topic.namespace != "public":
+            topic_name_list.append(topic.namespace)
+    print("get_topic_list()", topic_name_list)
+    return topic_name_list
 
-# class Broadcaster(mq.BroadcasterBase):
-#     def __init__(self, namespace: str):
-#         if namespace.startswith("/topic"):
-#             namespace.replace("/topic", "")
-#         self.client_namespace = namespace
-#
-#     def send(self, message):
-#         message = json.loads(message)
-#         socketio.emit("radio", {"data": message['data'], "count": message['count']},
-#                       namespace=self.client_namespace, broadcast=True)
 
 def update_or_create_topic(topic_name):
     topic = Topic.query.filter_by(namespace=topic_name).first()
