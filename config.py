@@ -33,7 +33,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
+    SQLALCHEMY_DATABASE_URI = os.environ.get("PRODUCTION_DATABASE_URI") or \
                               "mysql://xxx:yyy@aweffr.win/chat"
     DEBUG = False
 

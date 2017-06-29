@@ -45,6 +45,7 @@ def test():
 
 @manager.command
 def init_db():
+    "Initialize the database."
     db.drop_all()
     db.create_all()
     Role.init_roles()
