@@ -2,7 +2,6 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# TODO: 从 Config生成Topic列表
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "DAYDAYUP"
@@ -22,8 +21,6 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    # SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
-    #                           "sqlite:///" + os.path.join(basedir, "data-dev.sqlite")
     SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or "mysql://aweffr:summer123@aweffr.win/chat"
     DROP_AND_CREATE = os.environ.get("DROP_AND_CREATE" or False)
     ENABLE_ENGINEIO_LOGGER = False
@@ -36,8 +33,9 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI") or \
-                              "sqlite:///" + os.path.join(basedir, "data.sqlite")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
+                              "mysql://aweffr:summer123@aweffr.win/chat"
+    DEBUG = False
 
 
 config = {
