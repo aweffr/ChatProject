@@ -31,7 +31,9 @@ def error_handler_chat(e):
 @socketio.on("connect_ack", namespace="/room1")
 def connect_ack(recv_data):
     """
-
+    在收到成功连接的信息时，会做两件事:
+    1. 向客户端通过socket发送“XX进入聊天室的字符串”。
+    2. 后台join_room，把用户放到topic对应的room里。
     :param recv_data:
     :return:
     """
@@ -104,18 +106,6 @@ def index():
     else:
         return redirect(url_for(".public_channel"))
 
-        # form = NameForm()
-        # if form.validate_on_submit():
-        #     name = form.name.data
-        #     user = update_or_create_user(name)
-        #     session['name'] = user.name
-        #     session['known'] = True
-        #     form.name.data = ""
-        #     return redirect(url_for(".public_channel"))
-        # return render_template('index.html',
-        #                        form=form, name=session.get("name"),
-        #                        known=session.get("known", False),
-        #                        current_time=datetime.utcnow())
 
 
 @main.route("/public_channel", methods=['GET'])
