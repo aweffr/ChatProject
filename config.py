@@ -21,7 +21,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or "mysql://aweffr:summer123@aweffr.win/chat"
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or "mysql://xxx:yyy@aweffr.win/chat"
     DROP_AND_CREATE = os.environ.get("DROP_AND_CREATE" or False)
     ENABLE_ENGINEIO_LOGGER = False
 
@@ -34,7 +34,7 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URI") or \
-                              "mysql://aweffr:summer123@aweffr.win/chat"
+                              "mysql://xxx:yyy@aweffr.win/chat"
     DEBUG = False
 
 
