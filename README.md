@@ -26,6 +26,7 @@ APP所依赖的`python-engineio 1.5.4` 在接收socket报文时对含有中文�
 ### 安装python解释器
 1. 安装python3.6.1
 2. `git clone https://github.com/aweffr/ChatProject.git`
+或者解压压缩包`ChatProject.zip`
 3. `cd ChatProject`
 
 ### [可选]创建并激活虚拟环境:
